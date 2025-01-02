@@ -175,5 +175,45 @@ end P3Ex1_Testbench_2;
     annotation(
       experiment(StartTime = 0, StopTime = 3, Tolerance = 1e-06, Interval = 0.0001));
   end P3Ex1_Testbench_5;
+  
+  model P3Ex1_Testbench_6
+    P3_Circuit_Example1 ex1;
+  equation
+    ex1.r_load.percentage = 55;
+    ex1.r_load.state = PhysicalFaultModeling.FaultType.ok;
+    //ex1.b1.state = PhysicalFaultModeling.FaultType.ok;
+    //ex1.b2.state = PhysicalFaultModeling.FaultType.ok;
+   // ex1.b3.state = PhysicalFaultModeling.FaultType.ok;
+    
+    ex1.s1.state = PhysicalFaultModeling.FaultType.ok;
+    ex1.s1.mode = PhysicalFaultModeling.OperationalMode.open;
+    
+    ex1.s2.state = PhysicalFaultModeling.FaultType.ok;
+    ex1.s2.mode = PhysicalFaultModeling.OperationalMode.open;
+    
+    ex1.s3.state = PhysicalFaultModeling.FaultType.ok;
+    ex1.s3.mode = PhysicalFaultModeling.OperationalMode.open;
+    
+    
+    if time < 0.5 then
+      ex1.b1.state = PhysicalFaultModeling.FaultType.ok;
+      ex1.b2.state = PhysicalFaultModeling.FaultType.ok;
+      ex1.b3.state = PhysicalFaultModeling.FaultType.ok;
+    elseif time < 1 then
+      ex1.b1.state = PhysicalFaultModeling.FaultType.ok;
+      ex1.b2.state = PhysicalFaultModeling.FaultType.ok;
+      ex1.b3.state = PhysicalFaultModeling.FaultType.empty;
+    elseif time < 1.5 then
+      ex1.b1.state = PhysicalFaultModeling.FaultType.ok;
+      ex1.b2.state = PhysicalFaultModeling.FaultType.empty;
+      ex1.b3.state = PhysicalFaultModeling.FaultType.empty;  
+    else
+      ex1.b1.state = PhysicalFaultModeling.FaultType.empty;
+      ex1.b2.state = PhysicalFaultModeling.FaultType.empty;
+      ex1.b3.state = PhysicalFaultModeling.FaultType.empty;
+    end if;
+    annotation(
+      experiment(StartTime = 0, StopTime = 3, Tolerance = 1e-06, Interval = 0.0001));
+  end P3Ex1_Testbench_6;
 
 end ElectricalCircuit_P3;
