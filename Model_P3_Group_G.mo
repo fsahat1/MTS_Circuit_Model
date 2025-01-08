@@ -73,32 +73,18 @@ equation
   circ1.s[1].state = PhysicalFaultModeling.FaultType.ok;
   circ1.s[2].state = PhysicalFaultModeling.FaultType.ok;
   circ1.s[3].state = PhysicalFaultModeling.FaultType.ok;
-  //circ1.r_load.percentage = 100;
   circ1.r_load.state = PhysicalFaultModeling.FaultType.ok;
-  //on = 1;
-  /*
-  if time > 1 and time < 2 then
-    on = 2;
-  elseif time > 2 then
-    on = 3;
-  else
-    on = 1;
-  end if;
-  */
-  if time < 2 then
-    circ1.r_load.percentage = 20;
-  elseif time > 2 then
+ 
+  on = 1;
+  when time > 0 then
     circ1.r_load.percentage = 100;
-  else
-    circ1.r_load.percentage = 100;
-  end if;
-  if time <= 1 then
-    on = 1;
-  elseif time <= 2 then
-    on = VoltageController(circ1.r_load.r_int, circ1.r_load.v, 100.0, 0.9, 1, 3, circ1.bats[1].vn, circ1.bats[1].r_int);
-  else
-    on = VoltageController(circ1.r_load.r_int, circ1.r_load.v, 100.0, 0.9, 1, 3, circ1.bats[1].vn, circ1.bats[1].r_int);
-  end if;
+  elsewhen time > 1 then
+    circ1.r_load.percentage = 65;
+    reinit(on, VoltageController(circ1.r_load.r_int, circ1.r_load.v, 100.0, 0.9, 1, 3, circ1.bats[1].vn, circ1.bats[1].r_int));
+  elsewhen time > 2 then
+    circ1.r_load.percentage = 300;
+    reinit(on, VoltageController(circ1.r_load.r_int, circ1.r_load.v, 100.0, 0.9, 1, 3, circ1.bats[1].vn, circ1.bats[1].r_int));
+  end when;
   for i in 1:3 loop
     if i <= on then
       circ1.s[i].mode = PhysicalFaultModeling.OperationalMode.close;
@@ -107,7 +93,7 @@ equation
     end if;
   end for;
   annotation(
-    experiment(StartTime = 0, StopTime = 6, Tolerance = 1e-06, Interval = 0.0001));
+    experiment(StartTime = 0, StopTime = 6, Tolerance = 1e-06, Interval = 0.1));
 end Circuit_Scenario1;
 
 
