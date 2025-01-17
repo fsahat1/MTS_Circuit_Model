@@ -467,25 +467,28 @@ package Model_P3_Group_G
   equation
 //changing of percentages between multiple values, all elements good
 //Target voltage and tolerance
-    circ1.target_v = 75.0;
+    circ1.target_v = 70.0;
     circ1.tolerance = 0.9;
 //initial states of batteries and switches
     circ1.bats[1].state = PhysicalFaultModeling.FaultType.ok;
     circ1.bats[2].state = PhysicalFaultModeling.FaultType.ok;
     circ1.bats[3].state = PhysicalFaultModeling.FaultType.ok;
     circ1.s[1].state = PhysicalFaultModeling.FaultType.ok;
-    circ1.s[2].state = PhysicalFaultModeling.FaultType.broken;
+  
     circ1.s[3].state = PhysicalFaultModeling.FaultType.ok;
     circ1.r_load.state = PhysicalFaultModeling.FaultType.ok;
 //algorithm
     when initial() then
       circ1.r_load.percentage = 20;
+      circ1.s[2].state = PhysicalFaultModeling.FaultType.ok;
       on = 1;
     elsewhen time > 0 then
       circ1.r_load.percentage = 20;
+      circ1.s[2].state = PhysicalFaultModeling.FaultType.ok;
       on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
     elsewhen time > 1 then
       circ1.r_load.percentage = 20;
+      circ1.s[2].state = PhysicalFaultModeling.FaultType.broken;
       on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
     end when;
     for i in 1:3 loop
