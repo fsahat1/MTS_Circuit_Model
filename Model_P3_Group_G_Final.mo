@@ -22,6 +22,30 @@ package Model_P3_Group_G
     connect(s[2].m, r_load.p);
     connect(s[3].m, r_load.p);
   end Initial_Circuit;
+  
+  model Vdrop_Circuit
+    PhysicalFaultModeling.PFM_VariableResistor r_load(r = 100);
+    PhysicalFaultModeling.PFM_Battery[3] bats(vn = {250, 250, 250}, r_int = {250, 250, 250});
+    PhysicalFaultModeling.PFM_Switch[3] s;
+    //(
+    //mode = {PhysicalFaultModeling.OperationalMode.close, PhysicalFaultModeling.OperationalMode.open,        PhysicalFaultModeling.OperationalMode.open});
+    PhysicalFaultModeling.PFM_Ground gnd;
+    Modelica.Units.SI.Voltage target_v;
+    Real tolerance;
+    Integer bat_num;
+equation
+    bat_num = 3;
+    connect(r_load.p, gnd.p);
+    connect(r_load.m, bats[1].m);
+    connect(r_load.m, bats[2].m);
+    connect(r_load.m, bats[3].m);
+    connect(bats[1].p, s[1].p);
+    connect(bats[2].p, s[2].p);
+    connect(bats[3].p, s[3].p);
+    connect(s[1].m, r_load.p);
+    connect(s[2].m, r_load.p);
+    connect(s[3].m, r_load.p);
+end Vdrop_Circuit;
 
   function VoltageController
     //turns batteries on/off sequentially until goal is reached
@@ -999,4 +1023,197 @@ package Model_P3_Group_G
       experiment(StartTime = 0, StopTime = 60000,  // e.g., 100*100*6 = 60000
       Tolerance = 1e-06, Interval = 1));
   end Circuit_ScenarioDataGeneration;
+  
+  model Circuit_ScenarioAscend
+   Initial_Circuit circ1;
+   Integer on;
+   equation
+    //changing of percentages between multiple values, all elements good
+    //Target voltage and tolerance
+    circ1.tolerance = 0.8;
+    //initial states of batteries and switches
+    circ1.bats[1].state = PhysicalFaultModeling.FaultType.ok;
+    circ1.bats[2].state = PhysicalFaultModeling.FaultType.ok;
+    circ1.bats[3].state = PhysicalFaultModeling.FaultType.ok;
+    circ1.s[1].state = PhysicalFaultModeling.FaultType.ok;
+    circ1.s[2].state = PhysicalFaultModeling.FaultType.ok;
+    circ1.s[3].state = PhysicalFaultModeling.FaultType.ok;
+    circ1.r_load.state = PhysicalFaultModeling.FaultType.ok;
+    //algorithm
+    when initial() then
+      circ1.r_load.percentage = 25;
+      circ1.target_v = 50.0;
+      on = 1;
+    elsewhen time > 0 then
+      circ1.r_load.percentage = 25;
+      circ1.target_v = 50.0;
+      on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+    elsewhen time > 1 then
+      circ1.r_load.percentage = 50;
+      circ1.target_v = 60.0;
+      on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+    elsewhen time > 2 then
+      circ1.r_load.percentage = 75;
+      circ1.target_v = 70.0;
+      on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+    elsewhen time > 3 then
+      circ1.r_load.percentage = 80;
+      circ1.target_v = 75.0;
+      on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+    elsewhen time > 4 then
+      circ1.r_load.percentage = 90;
+      circ1.target_v = 85.0;
+      on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+    elsewhen time > 5 then
+      circ1.r_load.percentage = 100;
+      circ1.target_v = 100.0;
+      on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+    end when;
+    for i in 1:3 loop
+      if i <= on then
+        circ1.s[i].mode = PhysicalFaultModeling.OperationalMode.close;
+      else
+        circ1.s[i].mode = PhysicalFaultModeling.OperationalMode.open;
+      end if;
+    end for;
+    annotation(
+    experiment(StartTime = 0, StopTime = 6, Tolerance = 1e-06, Interval = 0.1));
+  end Circuit_ScenarioAscend;
+  
+  model Circuit_ScenarioDescend
+ Initial_Circuit circ1;
+ Integer on;
+ equation
+  //changing of percentages between multiple values, all elements good
+  //Target voltage and tolerance
+  circ1.tolerance = 0.8;
+  //initial states of batteries and switches
+  circ1.bats[1].state = PhysicalFaultModeling.FaultType.ok;
+  circ1.bats[2].state = PhysicalFaultModeling.FaultType.ok;
+  circ1.bats[3].state = PhysicalFaultModeling.FaultType.ok;
+  circ1.s[1].state = PhysicalFaultModeling.FaultType.ok;
+  circ1.s[2].state = PhysicalFaultModeling.FaultType.ok;
+  circ1.s[3].state = PhysicalFaultModeling.FaultType.ok;
+  circ1.r_load.state = PhysicalFaultModeling.FaultType.ok;
+  //algorithm
+  when initial() then
+    circ1.r_load.percentage = 100;
+    circ1.target_v = 100.0;
+    on = 1;
+  elsewhen time > 0 then
+    circ1.r_load.percentage = 100;
+    circ1.target_v = 100.0;
+    on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+  elsewhen time > 1 then
+    circ1.r_load.percentage = 90;
+    circ1.target_v = 85.0;
+    on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+  elsewhen time > 2 then
+    circ1.r_load.percentage = 80;
+    circ1.target_v = 75.0;
+    on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+  elsewhen time > 3 then
+    circ1.r_load.percentage = 75;
+      circ1.target_v = 70.0;
+    on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+  elsewhen time > 4 then
+    circ1.r_load.percentage = 50;
+    circ1.target_v = 60.0;
+    on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+  elsewhen time > 5 then
+    circ1.r_load.percentage = 25;
+    circ1.target_v = 50.0;
+    on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+  end when;
+  for i in 1:3 loop
+    if i <= on then
+      circ1.s[i].mode = PhysicalFaultModeling.OperationalMode.close;
+    else
+      circ1.s[i].mode = PhysicalFaultModeling.OperationalMode.open;
+    end if;
+  end for;
+  annotation(
+  experiment(StartTime = 0, StopTime = 6, Tolerance = 1e-06, Interval = 0.1));
+end Circuit_ScenarioDescend;
+
+  model Circuit_ScenarioVoltageDrops
+    Vdrop_Circuit circ1;
+    Integer on;
+   equation
+    //changing of percentages between multiple values, all elements good
+    //Target voltage and tolerance
+    circ1.tolerance = 0.8; 
+    circ1.target_v = 100.0; 
+    //circ1.r_load.r = 1000;
+    //initial states of batteries and switches
+    circ1.bats[1].state = PhysicalFaultModeling.FaultType.ok;
+    //circ1.bats[2].state = PhysicalFaultModeling.FaultType.ok;
+    circ1.bats[3].state = PhysicalFaultModeling.FaultType.ok;
+    circ1.s[1].state = PhysicalFaultModeling.FaultType.ok;
+    //circ1.s[2].state = PhysicalFaultModeling.FaultType.ok;
+    circ1.s[3].state = PhysicalFaultModeling.FaultType.ok;
+    circ1.r_load.state = PhysicalFaultModeling.FaultType.ok;
+    //algorithm
+    when initial() then
+      circ1.r_load.percentage = 100;
+      circ1.bats[2].state = PhysicalFaultModeling.FaultType.ok;
+      circ1.s[2].state = PhysicalFaultModeling.FaultType.ok;
+      on = 1;
+    elsewhen time > 0 then
+      circ1.r_load.percentage = 100;
+      circ1.bats[2].state = PhysicalFaultModeling.FaultType.ok;
+      circ1.s[2].state = PhysicalFaultModeling.FaultType.ok;
+      on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+    elsewhen time > 1 then
+      circ1.r_load.percentage = 75;
+      circ1.bats[2].state = PhysicalFaultModeling.FaultType.ok;
+      circ1.s[2].state = PhysicalFaultModeling.FaultType.ok;
+      on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+    elsewhen time > 2 then
+      circ1.r_load.percentage = 50;
+      circ1.bats[2].state = PhysicalFaultModeling.FaultType.ok;
+      circ1.s[2].state = PhysicalFaultModeling.FaultType.ok;
+      on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+    elsewhen time > 3 then
+      circ1.r_load.percentage = 100;
+      circ1.bats[2].state = PhysicalFaultModeling.FaultType.ok;
+      circ1.s[2].state = PhysicalFaultModeling.FaultType.broken;
+      on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+    elsewhen time > 4 then
+      circ1.r_load.percentage = 75;
+      circ1.bats[2].state = PhysicalFaultModeling.FaultType.ok;
+      circ1.s[2].state = PhysicalFaultModeling.FaultType.broken;
+      on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+    elsewhen time > 5 then
+      circ1.r_load.percentage = 50;
+      circ1.bats[2].state = PhysicalFaultModeling.FaultType.ok;
+      circ1.s[2].state = PhysicalFaultModeling.FaultType.broken;
+      on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+    elsewhen time > 6 then
+      circ1.r_load.percentage = 100;
+      circ1.bats[2].state = PhysicalFaultModeling.FaultType.broken;
+      circ1.s[2].state = PhysicalFaultModeling.FaultType.ok;
+      on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+    elsewhen time > 7 then
+      circ1.r_load.percentage = 75;
+      circ1.bats[2].state = PhysicalFaultModeling.FaultType.broken;
+      circ1.s[2].state = PhysicalFaultModeling.FaultType.ok;
+      on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+    elsewhen time > 8 then
+      circ1.r_load.percentage = 50;
+      circ1.bats[2].state = PhysicalFaultModeling.FaultType.broken;
+      circ1.s[2].state = PhysicalFaultModeling.FaultType.ok;
+      on = VoltageController(circ1.r_load.r_int, circ1.target_v, circ1.tolerance, circ1.bat_num, circ1.bats[1].vn, circ1.bats[1].r_int);
+    end when;
+    for i in 1:3 loop
+      if i <= on then
+        circ1.s[i].mode = PhysicalFaultModeling.OperationalMode.close;
+      else
+        circ1.s[i].mode = PhysicalFaultModeling.OperationalMode.open;
+      end if;
+    end for;
+    annotation(
+  experiment(StartTime = 0, StopTime = 10, Tolerance = 1e-06, Interval = 0.1));
+    end Circuit_ScenarioVoltageDrops;
+
 end Model_P3_Group_G;
